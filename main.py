@@ -5,6 +5,8 @@ from pygame.time import Clock
 from constants import *
 from logger import log_state
 from player import Player
+from asteroidfield import AsteroidField
+from asteroid import Asteroid
 
 # ------- Start game config ---------
 
@@ -26,8 +28,25 @@ def main():
     # Create delta time variable
     dt = 0
 
+    # Create Groups
+    updatable = pygame.sprite.Group()
+    drawable = pygame.sprite.Group()
+    asteroids = pygame.sprite.Group()
+
+    # Assign the static containers field for the Player class
+    Player.containers = (updatable, drawable)
+
+    # Assign the static containers field for the asteroids class
+    Asteroid.containers = (asteroids, updatable, drawable)
+
+    # Assign the static containers field for the asteroidfield class
+    AsteroidField.containers = (updatable,)
+
     # Instantiate player
     player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+
+    # Instantiate asteroid field
+    asteroid_field = AsteroidField()
 
     # Initiate the infinite loop
     while True:
@@ -38,14 +57,15 @@ def main():
             if event.type == pygame.QUIT:
                 return
 
-        # -- update all objects --
-        player.update(dt)
+        # -- update all objects in the updatable group --
+        updatable.update(dt)
 
         # --- fill screen with black ----
         screen.fill("black")
 
-        # Draw player
-        player.draw(screen)
+        # Loop over drawables and draw them
+        for obj in drawable:
+            obj.draw(screen)
 
         # Refresh the screen
         pygame.display.flip()
