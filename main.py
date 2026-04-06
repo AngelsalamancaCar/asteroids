@@ -3,10 +3,12 @@ import pygame
 from pygame.time import Clock
 
 from constants import *
-from logger import log_state
+from logger import log_event, log_state
 from player import Player
 from asteroidfield import AsteroidField
 from asteroid import Asteroid
+from shot import Shot
+import sys
 
 # ------- Start game config ---------
 
@@ -32,6 +34,7 @@ def main():
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
+    shots = pygame.sprite.Group()
 
     # Assign the static containers field for the Player class
     Player.containers = (updatable, drawable)
@@ -48,6 +51,9 @@ def main():
     # Instantiate asteroid field
     asteroid_field = AsteroidField()
 
+    # Instantiate shots
+    Shot.containers = (shots, updatable, drawable)
+
     # Initiate the infinite loop
     while True:
         # call the logger
@@ -59,6 +65,19 @@ def main():
 
         # -- update all objects in the updatable group --
         updatable.update(dt)
+
+        for asteroid in list(asteroids):
+            if asteroid.collides_with(player):
+                log_event("player_hit")
+                print("Game Over")
+                sys.exit()
+
+            for shot in list(shots):
+                if shot.collides_with(asteroid):
+                    log_event("asteroid_shot")
+                    asteroid.split()
+                    shot.kill()
+                    break
 
         # --- fill screen with black ----
         screen.fill("black")

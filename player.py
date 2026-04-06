@@ -4,7 +4,16 @@ from tokenize import PLUSEQUAL
 import pygame
 
 from circleshape import CircleShape
-from constants import LINE_WIDTH, PLAYER_RADIUS, PLAYER_SPEED, PLAYER_TURN_SPEED
+from constants import (
+    LINE_WIDTH,
+    PLAYER_RADIUS,
+    PLAYER_SHOOT_SPEED,
+    PLAYER_SPEED,
+    PLAYER_TURN_SPEED,
+    SHOT_RADIUS,
+    PLAYER_SHOOT_COOLDOWN_SECONDS,
+)
+from shot import Shot
 
 
 # ------- define inheritance ---------
@@ -34,7 +43,21 @@ class Player(CircleShape):
     def rotate(self, dt):
         self.rotation += PLAYER_TURN_SPEED * dt
 
+    def shoot(self):
+        if self.shoot_cooldown > 0:
+            return
+        # Creates shot
+        shot = Shot(self.position.x, self.position.y, SHOT_RADIUS)
+        shot.velocity = pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
+
+        # Reset shoot_cooldown
+        self.shoot_cooldown = PLAYER_SHOOT_COOLDOWN_SECONDS
+
+    shoot_cooldown = 0
+
+    # Movement logic for player
     def update(self, dt):
+        self.shoot_cooldown -= dt
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_a]:
@@ -48,3 +71,7 @@ class Player(CircleShape):
             self.move(dt)
         if keys[pygame.K_s]:
             self.move(-dt)
+
+        # Shooting logic
+        if keys[pygame.K_SPACE]:
+            self.shoot()
